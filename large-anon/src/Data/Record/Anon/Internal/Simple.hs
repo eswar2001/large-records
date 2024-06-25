@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -255,11 +256,14 @@ instance ( RecordConstraints r Eq
          ) => Ord (Record r) where
   compare = gcompare
 
+#ifdef WITH_AESON_INSTANCES
+-- enabled by default, look to cabal flags to disable
 instance RecordConstraints r ToJSON => ToJSON (Record r) where
   toJSON = gtoJSON
 
 instance RecordConstraints r FromJSON => FromJSON (Record r) where
   parseJSON = gparseJSON
+#endif
 
 {-------------------------------------------------------------------------------
   Support for @typelet@
