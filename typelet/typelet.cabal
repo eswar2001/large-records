@@ -40,7 +40,7 @@ library
         TypeLet.Plugin.Substitution
     build-depends:
         base >= 4.13 && < 4.17
-      , ghc-tcplugin-api >= 0.7 && < 0.8
+      , ghc-tcplugin-api
 
         -- whichever versions are bundled with ghc:
       , containers
