@@ -12,6 +12,8 @@ import Data.Record.Anon.Internal.Plugin.Source.GhcShim
 import Data.Record.Anon.Internal.Plugin.Source.Names
 import Data.Record.Anon.Internal.Plugin.Source.NamingT
 import Data.Record.Anon.Internal.Plugin.Source.Options
+import GHC.MVar
+import Data.Bool
 
 {-------------------------------------------------------------------------------
   Top-level
@@ -25,25 +27,30 @@ sourcePlugin opts
                    , hsmodImports = imports
                    }
                } = do
+    isModified <- liftIO $ newMVar (False)
     (decls', modls) <- runNamingHsc $
                          everywhereM
-                           (mkM $ transformExpr $ parseOpts opts)
+                           (mkM $ transformExpr isModified $ parseOpts opts)
                            decls
+    isModified' <- liftIO $ readMVar isModified
     return $ parsed {
         hpm_module = L l $ modl {
             hsmodDecls   = decls'
-          , hsmodImports = imports ++ map (importDecl True) modls
+          , hsmodImports = imports ++ (bool (mempty) (map (importDecl True) modls) isModified')
           }
       }
 
-transformExpr :: Options -> LHsExpr GhcPs -> NamingT Hsc (LHsExpr GhcPs)
-transformExpr options@Options{debug} e@(L l expr)
+transformExpr :: MVar (Bool) -> Options -> LHsExpr GhcPs -> NamingT Hsc (LHsExpr GhcPs)
+transformExpr isModified options@Options{debug} e@(L l expr)
   | RecordCon _ext (L _ nm) (HsRecFields flds dotdot) <- expr
   , Unqual nm' <- nm
   , Nothing    <- dotdot
   , Just mode  <- parseMode (occNameString nm')
   , Just flds' <- mapM getField flds
   = do e' <- anonRec options mode l flds'
+       lift $ liftIO $ do
+         d <- takeMVar isModified
+         putMVar isModified True
        when debug $ lift $ issueWarning l (debugMsg e')
        return e'
 

@@ -42,6 +42,8 @@ import Data.Record.Internal.GHC.TemplateHaskellStyle
 import Data.Record.Internal.Plugin.Exception
 import Data.Record.Internal.Plugin.Options
 import Data.Record.Internal.Plugin.Record
+import Data.Bool (bool)
+import Data.List (foldl')
 
 {-------------------------------------------------------------------------------
   Top-level: the plugin proper
@@ -80,9 +82,10 @@ transformDecls (L l modl@HsModule {hsmodDecls = decls, hsmodImports}) = do
 
     -- We add imports whether or not there were some errors, to avoid spurious
     -- additional errors from ghc about things not in scope.
+    let isCodeModified = foldl' (\acc (_,isChanged) -> acc || isChanged) False decls'
     pure $ L l $ modl {
-        hsmodDecls   = concat decls'
-      , hsmodImports = hsmodImports ++ map (uncurry importDecl) requiredImports
+        hsmodDecls   = concat $ map (\(x,_) -> x) decls'
+      , hsmodImports = bool (hsmodImports) (hsmodImports ++ map (uncurry importDecl) requiredImports) isCodeModified
       }
   where
     largeRecords :: Map String [(SrcSpan, LargeRecordOptions)]
@@ -102,32 +105,32 @@ transformDecls (L l modl@HsModule {hsmodDecls = decls, hsmodImports}) = do
 transformDecl ::
      Map String [(SrcSpan, LargeRecordOptions)]
   -> LHsDecl GhcPs
-  -> WriterT (Set String) Hsc [LHsDecl GhcPs]
+  -> WriterT (Set String) Hsc ([LHsDecl GhcPs],Bool)
 transformDecl largeRecords decl@(L l _) =
     case decl of
       DataD (nameBase -> name) _ _ _  ->
         case Map.findWithDefault [] name largeRecords of
           [] ->
             -- Not a large record. Leave alone.
-            return [decl]
+            return ([decl],False)
           (_:_:_) -> do
             lift $ issueError l $ text ("Conflicting annotations for " ++ name)
-            return [decl]
+            return ([decl],False)
           [(annLoc, opts)] -> do
             tell (Set.singleton name)
             case runExcept (viewRecord annLoc opts decl) of
               Left e -> do
                 lift $ issueError (exceptionLoc e) (exceptionToSDoc e)
                 -- Return the declaration unchanged if we cannot parse it
-                return [decl]
+                return ([decl],False)
               Right r -> do
                 dynFlags <- lift getDynFlags
                 newDecls <- lift $ runFreshHsc $ genLargeRecord r dynFlags
                 when (debugLargeRecords opts) $
                   lift $ issueWarning l (debugMsg newDecls)
-                pure newDecls
+                pure (newDecls,True)
       _otherwise ->
-        pure [decl]
+        pure ([decl],False)
   where
     debugMsg :: [LHsDecl GhcPs] -> SDoc
     debugMsg newDecls = pprSetDepth AllTheWay $ vcat $
