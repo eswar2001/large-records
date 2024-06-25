@@ -31,7 +31,7 @@ parseOpts = ($ defaultOptions) . foldr (.) id . map aux
     aux "debug"   opts = opts { debug   = True }
     aux "typelet" opts = opts { typelet = True }
     aux "noapply" opts = opts { noapply = True }
-    aux opt       _    = error $ "invalid option: " ++ show opt
+    aux _       _    = defaultOptions
 
 {-------------------------------------------------------------------------------
   Mode
