@@ -69,16 +69,16 @@ isCanonicalVarEq = \case
 #endif
 
 -- TODO: Ideally we would actually show the location information obviously
-instance Outputable CtLoc where
+instance {-# OVERLAPPABLE #-} Outputable CtLoc where
   ppr _ = text "<CtLoc>"
 
 #if __GLASGOW_HASKELL__ < 900
-instance Outputable a => Outputable (NonEmpty a) where
+instance {-# OVERLAPPABLE #-} Outputable a => Outputable (NonEmpty a) where
   ppr = ppr . toList
 #endif
 
 #if __GLASGOW_HASKELL__ >= 902
-instance (Outputable l, Outputable e) => Outputable (GenLocated l e) where
+instance {-# OVERLAPPABLE #-} (Outputable l, Outputable e) => Outputable (GenLocated l e) where
   ppr (L l e) = parens $ text "L" <+> ppr l <+> ppr e
 #endif
 
