@@ -195,23 +195,23 @@ test-suite test-large-anon
     cpp-options:
       -DNO_FOURMOLU
 
-Executable large-anon-testsuite-fourmolu-preprocessor
-  main-is:
-      Main.hs
-  hs-source-dirs:
-      fourmolu-preprocessor
-  build-depends:
-    , base
-    , fourmolu >= 0.10.1
-    , text
-  default-language:
-      Haskell2010
-  ghc-options:
-      -Wall
+-- Executable large-anon-testsuite-fourmolu-preprocessor
+--   main-is:
+--       Main.hs
+--   hs-source-dirs:
+--       fourmolu-preprocessor
+--   build-depends:
+--     , base
+--     , fourmolu >= 0.10.1
+--     , text
+--   default-language:
+--       Haskell2010
+--   ghc-options:
+--       -Wall
 
-  -- Fourmolu is only compatible with RDP syntax from ghc 9.2 and up.
-  if impl(ghc < 9.2) || flag(disableFourmoluExec)
-    buildable: False
+--   -- Fourmolu is only compatible with RDP syntax from ghc 9.2 and up.
+--   if impl(ghc < 9.2) || flag(disableFourmoluExec)
+--     buildable: False
 
 Flag debug
   Description: Enable internal debugging features
