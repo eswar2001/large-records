@@ -188,12 +188,12 @@ test-suite test-large-anon
   -- if impl(ghc >= 8.10)
   --   ghc-options: -Wunused-packages
 
-  if impl(ghc >= 9.2) && !flag(disableFourmoluExec)
-    build-tool-depends:
-      large-anon:large-anon-testsuite-fourmolu-preprocessor
-  else
-    cpp-options:
-      -DNO_FOURMOLU
+  -- if impl(ghc >= 9.2) && !flag(disableFourmoluExec)
+  --   build-tool-depends:
+  --     large-anon:large-anon-testsuite-fourmolu-preprocessor
+  -- else
+  --   cpp-options:
+  --     -DNO_FOURMOLU
 
 -- Executable large-anon-testsuite-fourmolu-preprocessor
 --   main-is:
@@ -218,7 +218,7 @@ Flag debug
   Default: False
   Manual: True
 
-Flag disableFourmoluExec
-  Description: Disable executable large-anon-testsuite-fourmolu-preprocessor
-  Default: False
-  Manual: True
+-- Flag disableFourmoluExec
+--   Description: Disable executable large-anon-testsuite-fourmolu-preprocessor
+--   Default: False
+--   Manual: True
