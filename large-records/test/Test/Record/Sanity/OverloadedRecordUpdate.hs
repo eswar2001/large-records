@@ -40,6 +40,7 @@ import Data.Record.Generic (Rep)
 import Data.Record.Generic.Lens.VL
 import Data.Record.Overloading
 import Data.Record.Plugin
+import qualified Prelude ( error )
 
 tests :: TestTree
 tests = testGroup "Test.Record.Sanity.OverloadedRecordUpdate" [

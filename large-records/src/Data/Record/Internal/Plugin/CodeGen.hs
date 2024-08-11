@@ -203,7 +203,8 @@ genVectorConversions QualifiedNames{..} r@Record{..} = concatM [
                         ]
                     )
                   , ( wildP
-                    , VarE unq_error `appE` stringE matchErr
+                       -- VarE unq_error `appE` stringE matchErr
+                    ,  VarE (noLoc $ mkRdrQual (mkModuleName "Prelude") (mkVarOcc "error")) `appE` stringE matchErr
                     )
                   ]
           ]
