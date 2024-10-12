@@ -92,9 +92,21 @@ getModule pkg modl = do
     res  <- findImportedModule modl' pkg'
     case res of
       Found _ m  -> return m
-      _otherwise -> error $ concat [
+      NoPackage _ ->
+        error $ concat [
+          "getModule: could not find "
+        , " package "
+        , pkg
+        ]
+      FoundMultiple x ->
+        error $ "getModule: found multiple " ++ (showSDocUnsafe . ppr) x
+      (NotFound fr_paths _ _ _ _ _) -> error $ concat [
           "getModule: could not find "
         , modl
         , " in package "
         , pkg
+        , " looked at these file paths "
+        , show fr_paths
         ]
+
+
